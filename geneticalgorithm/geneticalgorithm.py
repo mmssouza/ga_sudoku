@@ -271,47 +271,42 @@ class geneticalgorithm():
         else: 
             self.mniwi=int(self.param['max_iteration_without_improv'])
 
-        
-        ############################################################# 
-    def run(self):
-        
-        
+    def init(self):
         ############################################################# 
         # Initial Population
         
         self.integers=np.where(self.var_type=='int')
         self.reals=np.where(self.var_type=='real')
         
-        
-        
-        pop=np.array([np.zeros(self.dim+1)]*self.pop_s)
-        solo=np.zeros(self.dim+1)
-        var=np.zeros(self.dim)       
+        self.pop=np.array([np.zeros(self.dim+1)]*self.pop_s)
+        self.solo=np.zeros(self.dim+1)
+        self.var=np.zeros(self.dim)       
         
         for p in range(0,self.pop_s):
          
             for i in self.integers[0]:
-                var[i]=np.random.randint(self.var_bound[i][0],\
+                self.var[i]=np.random.randint(self.var_bound[i][0],\
                         self.var_bound[i][1]+1)  
-                solo[i]=var[i].copy()
+                self.solo[i]=self.var[i].copy()
             for i in self.reals[0]:
-                var[i]=self.var_bound[i][0]+np.random.random()*\
+                self.var[i]=self.var_bound[i][0]+np.random.random()*\
                 (self.var_bound[i][1]-self.var_bound[i][0])    
-                solo[i]=var[i].copy()
+                self.solo[i]=self.var[i].copy()
 
+            self.obj=self.sim(self.var)            
+            self.solo[self.dim]=self.obj
+            self.pop[p]=self.solo.copy()
+        
+    def run(self):
 
-            obj=self.sim(var)            
-            solo[self.dim]=obj
-            pop[p]=solo.copy()
-
-        #############################################################
+        self.init()
 
         #############################################################
         # Report
         self.report=[]
-        self.test_obj=obj
-        self.best_variable=var.copy()
-        self.best_function=obj
+        self.test_obj=self.obj
+        self.best_variable=self.var.copy()
+        self.best_function=self.obj
         ##############################################################   
                         
         t=1
@@ -322,32 +317,31 @@ class geneticalgorithm():
                 self.progress(t,self.iterate,status="GA is running...")
             #############################################################
             #Sort
-            pop = pop[pop[:,self.dim].argsort()]
-
+            self.pop = self.pop[self.pop[:,self.dim].argsort()]
                 
             
-            if pop[0,self.dim]<self.best_function:
+            if self.pop[0,self.dim]<self.best_function:
                 counter=0
-                self.best_function=pop[0,self.dim].copy()
-                self.best_variable=pop[0,: self.dim].copy()
+                self.best_function=self.pop[0,self.dim].copy()
+                self.best_variable=self.pop[0,: self.dim].copy()
             else:
                 counter+=1
             #############################################################
             # Report
 
-            self.report.append(pop[0,self.dim])
+            self.report.append(self.pop[0,self.dim])
     
             ##############################################################         
             # Normalizing objective function 
             
             normobj=np.zeros(self.pop_s)
             
-            minobj=pop[0,self.dim]
+            minobj=self.pop[0,self.dim]
             if minobj<0:
-                normobj=pop[:,self.dim]+abs(minobj)
+                normobj=self.pop[:,self.dim]+abs(minobj)
                 
             else:
-                normobj=pop[:,self.dim].copy()
+                normobj=self.pop[:,self.dim].copy()
     
             maxnorm=np.amax(normobj)
             normobj=maxnorm-normobj+1
@@ -365,10 +359,10 @@ class geneticalgorithm():
             par=np.array([np.zeros(self.dim+1)]*self.par_s)
             
             for k in range(0,self.num_elit):
-                par[k]=pop[k].copy()
+                par[k]=self.pop[k].copy()
             for k in range(self.num_elit,self.par_s):
                 index=np.searchsorted(cumprob,np.random.random())
-                par[k]=pop[index].copy()
+                par[k]=self.pop[index].copy()
                 
             ef_par_list=np.array([False]*self.par_s)
             par_count=0
@@ -382,10 +376,10 @@ class geneticalgorithm():
     
             #############################################################  
             #New generation
-            pop=np.array([np.zeros(self.dim+1)]*self.pop_s)
+            self.pop=np.array([np.zeros(self.dim+1)]*self.pop_s)
             
             for k in range(0,self.par_s):
-                pop[k]=par[k].copy()
+                self.pop[k]=par[k].copy()
                 
             for k in range(self.par_s, self.pop_s, 2):
                 r1=np.random.randint(0,par_count)
@@ -398,20 +392,20 @@ class geneticalgorithm():
                 ch2=ch[1].copy()
                 
                 ch1=self.mut(ch1)
-                ch2=self.mutmidle(ch2,pvar1,pvar2)               
-                solo[: self.dim]=ch1.copy()                
+                ch2=self.mut(ch2)               
+                self.solo[: self.dim]=ch1.copy()                
                 obj=self.sim(ch1)
-                solo[self.dim]=obj
-                pop[k]=solo.copy()                
-                solo[: self.dim]=ch2.copy()                
+                self.solo[self.dim]=obj
+                self.pop[k]=self.solo.copy()                
+                self.solo[: self.dim]=ch2.copy()                
                 obj=self.sim(ch2)               
-                solo[self.dim]=obj
-                pop[k+1]=solo.copy()
+                self.solo[self.dim]=obj
+                self.pop[k+1]=self.solo.copy()
         #############################################################       
             t+=1
             if counter > self.mniwi:
-                pop = pop[pop[:,self.dim].argsort()]
-                if pop[0,self.dim]>=self.best_function:
+                self.pop = self.pop[self.pop[:,self.dim].argsort()]
+                if self.pop[0,self.dim]>=self.best_function:
                     t=self.iterate
                     if self.progress_bar==True:
                         self.progress(t,self.iterate,status="GA is running...")
@@ -421,16 +415,16 @@ class geneticalgorithm():
                 
         #############################################################
         #Sort
-        pop = pop[pop[:,self.dim].argsort()]
+        self.pop = self.pop[self.pop[:,self.dim].argsort()]
         
-        if pop[0,self.dim]<self.best_function:
+        if self.pop[0,self.dim]<self.best_function:
                 
-            self.best_function=pop[0,self.dim].copy()
-            self.best_variable=pop[0,: self.dim].copy()
+            self.best_function=self.pop[0,self.dim].copy()
+            self.best_variable=self.pop[0,: self.dim].copy()
         #############################################################
         # Report
 
-        self.report.append(pop[0,self.dim])
+        self.report.append(self.pop[0,self.dim])
         
         
  
@@ -440,6 +434,7 @@ class geneticalgorithm():
         if self.progress_bar==True:
             show=' '*100
             sys.stdout.write('\r%s' % (show))
+        print(self.param)
         sys.stdout.write('\r The best solution found:\n %s' % (self.best_variable))
         sys.stdout.write('\n\n Objective function:\n %s\n' % (self.best_function))
         sys.stdout.flush() 
