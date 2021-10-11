@@ -391,8 +391,8 @@ class geneticalgorithm():
                 ch1=ch[0].copy()
                 ch2=ch[1].copy()
                 
-                ch1=self.mut(ch1)
-                ch2=self.mut(ch2)               
+                ch1=self.mut(ch1,'perm')
+                ch2=self.mut(ch2,'swap')               
                 self.solo[: self.dim]=ch1.copy()                
                 obj=self.sim(ch1)
                 self.solo[self.dim]=obj

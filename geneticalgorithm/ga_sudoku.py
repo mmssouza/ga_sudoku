@@ -60,7 +60,7 @@ class ga_sudoku(ga):
   Y = y.reshape((9,9))
   ofs1 = X.copy()
   ofs2 = Y.copy()
-  if self.c_type == 'uniform':
+  if c_type == 'uniform':
    for i in [0,3,6]:
     for j in [0,1,2]:
      i1,i2 = i,i+3
@@ -69,7 +69,7 @@ class ga_sudoku(ga):
      if ran < 0.5:
       ofs1[i1:i2,j1:j2] = Y[i1:i2,j1:j2].copy()
       ofs2[i1:i2,j1:j2] = X[i1:i2,j1:j2].copy() 
-  elif self.c_type == 'one_point':
+  elif c_type == 'one_point':
     p = np.random.randint(0,8)
     k = 0
     for i in [0,3,6]:
@@ -80,7 +80,7 @@ class ga_sudoku(ga):
        ofs1[i1:i2,j1:j2] = Y[i1:i2,j1:j2].copy()
        ofs2[i1:i2,j1:j2] = X[i1:i2,j1:j2].copy()
       k = k + 1 
-  elif self.c_type == 'two_point':
+  elif c_type == 'two_point':
     k = 0
     p1 = np.random.randint(0,9)
     p2 = np.random.randint(p1,9)
@@ -95,7 +95,7 @@ class ga_sudoku(ga):
 
   return([ofs1.flatten(), ofs2.flatten()])          
 
- def mut(self,x):
+ def mut(self,x,m_type):
 
   ofs = x.reshape((9,9))
 
@@ -103,11 +103,21 @@ class ga_sudoku(ga):
    for j in [0,1,2]:
     i1,i2 = i,i+3
     j1,j2 = 3*j,3*j+3
-    ran=np.random.random()
-    if ran < self.prob_mut:
-     aux = ofs[i1:i2,j1:j2].copy()
-     msk = self.Mask[i1:i2,j1:j2]
-     ofs[i1:i2,j1:j2] = self.perm(aux,msk) 
+    aux = ofs[i1:i2,j1:j2].copy()
+    msk = self.Mask[i1:i2,j1:j2]
+    if m_type == 'perm':
+     if np.random.random() < self.prob_mut:
+      ofs[i1:i2,j1:j2] = self.perm(aux,msk) 
+    elif m_type == 'swap':
+     aux = aux.flatten()
+     for k in range(9):
+      if np.random.random() < self.prob_mut:
+       l = np.random.randint(9)
+       if (k != l) and ~(msk.flatten()[k] or msk.flatten()[l]):
+        tmp = aux[k]
+        aux[k] = aux[l]
+        aux[l] = tmp
+     ofs[i1:i2,j1:j2]= aux.reshape(3,3).copy() 
 
   return ofs.flatten() 
 

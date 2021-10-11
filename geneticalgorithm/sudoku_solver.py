@@ -39,23 +39,24 @@ def f(X):
  return sum_row.sum() + sum_col.sum() 
 
 def task(p):
+ np.random.seed()
  model=ga(function=f,board=board,algorithm_parameters = p,progress_bar = False)
  model.run()
  return (p,model.best_variable,model.report)
 
 N = 25
-params = {'max_num_iteration': 2000,\
-                   'population_size': 1000,\
-                   'mutation_probability': 0.16,\
+params = {'max_num_iteration': 2700,\
+                   'population_size': 500,\
+                   'mutation_probability': 0.2,\
                    'elit_ratio': 0.3,\
-                   'crossover_probability': 0.85,\
-                   'parents_portion': 0.5,\
-                   'crossover_type':'two_point',\
+                   'crossover_probability': 0.9,\
+                   'parents_portion': 0.4,\
+                   'crossover_type':'uniform',\
                    'max_iteration_without_improv':None}
 
 if __name__ == '__main__':
- with Pool(processes=2) as pool:
-  res = pool.map(task,[params for i in range(2)])
+ with Pool(processes=3) as pool:
+  res = pool.map(task,[params for i in range(N)])
   for i in res:
    print("\n********************************")
    print('\n',i[0])
