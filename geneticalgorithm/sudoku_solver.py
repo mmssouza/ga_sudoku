@@ -25,12 +25,9 @@ import pickle
 #                    0, 0, 0, 0, 2, 0, 1, 9, 0, 
 #                    0, 0, 6, 1, 0, 0, 0, 5, 0],dtype='int')                      
 
-board_name ='image1000.dat'
-dataset_fname ='v2_train.pkl'
+fname ='v2_train.pkl'
 
-d = pickle.load(open(dataset_fname,'rb'))
-
-board = d[board_name].flatten()
+d = pickle.load(open(fname,'rb'))
 
 def f(X):
 
@@ -46,29 +43,37 @@ def f(X):
  return sum_row.sum() + sum_col.sum() 
 
 def task(p):
- model=ga(function=f,board=board,algorithm_parameters = p[0],progress_bar = False,sg = p[1])
+ board = p[0]
+ params = p[1]
+ seedseq = p[2]
+
+ model=ga(function=f,board=board,algorithm_parameters = params,progress_bar = False,sg = seedseq)
  model.run()
- return (p[0],model.best_variable,model.report)
+ return (p[1],model.best_variable,model.report)
 
-N = 30
+N = 20 
 
-ss = np.random.SeedSequence(12345)
+ss = np.random.SeedSequence(345789)
 
-params = {'max_num_iteration': 5700,\
-                   'population_size': 1350,\
-                   'mutation_probability': 0.26,\
-                   'elit_ratio': 0.3,\
-                   'crossover_probability': 0.8,\
-                   'parents_portion': 0.4,\
-                   'crossover_type':'uniform',\
-                   'max_iteration_without_improv':2500}
+params = {'max_num_iteration': 500,\
+                   'population_size': 1000,\
+                   'mutation_probability': 0.25,\
+                   'elit_ratio': 0.5,\
+                   'crossover_probability': 0.6,\
+                   'parents_portion': 0.6,\
+                   'crossover_type':'one_point',\
+                   'max_iteration_without_improv':None}
 
 if __name__ == '__main__':
- with Pool(processes=4) as pool:
-  res = pool.map(task,[(params,s) for s in ss.spawn(N)])
-  for i in res:
-   print("\n********************************")
-   print('\n',i[0])
-   print('\n',i[1])
-   print('\n',i[2])
-   print()
+ for k in d:
+  board = d[k].flatten()
+  print(k)
+  with Pool(processes=4) as pool:
+   res = pool.map(task,[(board,params,s) for s in ss.spawn(N)])
+  print("*******************************************************\n")
+
+#  for i in res:
+#   print('\n',i[0])
+#   print('\n',i[1])
+#   print('\n',i[2])
+#   print()

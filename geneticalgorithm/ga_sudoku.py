@@ -5,11 +5,11 @@ from geneticalgorithm import geneticalgorithm as ga
 class ga_sudoku(ga):
 
  def __init__(self, function, board,\
-                 algorithm_parameters={'max_num_iteration': 500,\
-                                       'population_size':650,\
+                 algorithm_parameters={'max_num_iteration': 1500,\
+                                       'population_size':750,\
                                        'mutation_probability':0.25,\
                                        'elit_ratio': 0.24,\
-                                       'crossover_probability': 0.75,\
+                                       'crossover_probability': 0.65,\
                                        'parents_portion': 0.4,\
                                        'crossover_type':'uniform',\
                                        'max_iteration_without_improv':None},\
@@ -24,7 +24,7 @@ class ga_sudoku(ga):
   super().__init__(function,dimension = 81,variable_type = 'int',variable_boundaries = np.array([[1,9]]*81,dtype='int'),variable_type_mixed = None,function_timeout = 10,algorithm_parameters=algorithm_parameters,convergence_curve=convergence_curve, progress_bar=progress_bar)
 
  def perm(self,x,msk):
-  x[~msk] = self.rgen.permutation(x[~msk])
+  x[msk] = self.rgen.permutation(x[msk])
   return x
 
  def init(self):
@@ -38,7 +38,7 @@ class ga_sudoku(ga):
         self.solo=np.zeros(self.dim+1)
         self.var=np.zeros(self.dim)       
         
-        self.Mask = (self.board != 0).reshape((9,9))
+        self.Mask = (self.board == 0).reshape((9,9))
 
         for p in range(0,self.pop_s):
          aux = self.board.reshape((9,9)).copy()
@@ -49,7 +49,7 @@ class ga_sudoku(ga):
            j1,j2 = 3*j,3*j+3
            tmp = aux[i1:i2,j1:j2]
            msk = self.Mask[i1:i2,j1:j2]
-           tmp[~msk] = self.rgen.permutation(list({1,2,3,4,5,6,7,8,9} - set(tmp[msk]))) 
+           tmp[msk] = self.rgen.permutation(list({1,2,3,4,5,6,7,8,9} - set(tmp[~msk]))) 
 
          self.var = aux.flatten().copy()
          self.solo[0:self.dim] = self.var.copy()
@@ -108,19 +108,17 @@ class ga_sudoku(ga):
     j1,j2 = 3*j,3*j+3
     aux = ofs[i1:i2,j1:j2].copy()
     msk = self.Mask[i1:i2,j1:j2]
-    if m_type == 'perm':
-     if self.rgen.random() < self.prob_mut:
-      ofs[i1:i2,j1:j2] = self.perm(aux,msk) 
-    elif m_type == 'swap':
-     aux = aux.flatten()
-     for k in range(9):
-      if self.rgen.random() < self.prob_mut:
-       l = self.rgen.integers(9)
-       if (k != l) and ~(msk.flatten()[k] or msk.flatten()[l]):
-        tmp = aux[k]
-        aux[k] = aux[l]
-        aux[l] = tmp
-     ofs[i1:i2,j1:j2]= aux.reshape(3,3).copy() 
+    if self.rgen.random() < self.prob_mut:
+     if m_type == 'perm':
+       ofs[i1:i2,j1:j2] = self.perm(aux,msk) 
+     elif m_type == 'swap':
+       aux = aux.flatten()
+       l = self.rgen.integers(1,9,2)
+       if (l[0] != l[1]) and (msk.flatten()[l[0]] or msk.flatten()[l[1]]):
+         tmp = aux[l[0]]
+         aux[l[0]] = aux[l[1]]
+         aux[l[1]] = tmp
+       ofs[i1:i2,j1:j2]= aux.reshape(3,3).copy() 
 
   return ofs.flatten() 
 
