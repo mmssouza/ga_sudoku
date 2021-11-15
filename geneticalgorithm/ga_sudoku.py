@@ -113,12 +113,14 @@ class ga_sudoku(ga):
        ofs[i1:i2,j1:j2] = self.perm(aux,msk) 
      elif m_type == 'swap':
        aux = aux.flatten()
-       l = self.rgen.integers(1,9,2)
-       if (l[0] != l[1]) and (msk.flatten()[l[0]] or msk.flatten()[l[1]]):
-         tmp = aux[l[0]]
-         aux[l[0]] = aux[l[1]]
-         aux[l[1]] = tmp
-       ofs[i1:i2,j1:j2]= aux.reshape(3,3).copy() 
+       k = self.rgen.integers(1,5)
+       U,V = self.rgen.integers(1,9,k),self.rgen.integers(1,9,k)
+       for u,v in zip(U,V):
+        if (u != v) and msk.flatten()[u] and msk.flatten()[v]:
+         tmp = aux[u]
+         aux[u] = aux[v]
+         aux[v] = tmp
+       ofs[i1:i2,j1:j2]= aux.reshape(3,3).copy()
 
   return ofs.flatten() 
 

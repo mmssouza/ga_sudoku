@@ -51,21 +51,25 @@ def task(p):
  model.run()
  return (p[1],model.best_variable,model.report)
 
-N = 20 
+N = 15
 
 ss = np.random.SeedSequence(345789)
 
-params = {'max_num_iteration': 500,\
-                   'population_size': 1000,\
-                   'mutation_probability': 0.25,\
-                   'elit_ratio': 0.5,\
-                   'crossover_probability': 0.6,\
-                   'parents_portion': 0.6,\
+params = {'max_num_iteration': 350,\
+                   'population_size': 540,\
+                   'mutation_probability': 0.35,\
+                   'elit_ratio': 0.4,\
+                   'crossover_probability': 0.7,\
+                   'parents_portion': 0.5,\
                    'crossover_type':'one_point',\
-                   'max_iteration_without_improv':None}
+                   'max_iteration_without_improv':150}
 
 if __name__ == '__main__':
+ n = 2
  for k in d:
+  if n == 0:
+   break;
+  n-=1;
   board = d[k].flatten()
   print(k)
   with Pool(processes=4) as pool:
