@@ -45,39 +45,53 @@ def f(X):
 def task(p):
  board = p[0]
  params = p[1]
+ N_iter = params['max_num_iteration']
  seedseq = p[2]
 
- model=ga(function=f,board=board,algorithm_parameters = params,progress_bar = False,sg = seedseq)
- model.run()
- return (p[1],model.best_variable,model.report)
+ model=ga(function=f,board=board,parameters = params,sg = seedseq)
+ [model.run() for _ in range(N_iter)]
+ return model.pop
 
-N = 15
+N = 4 
 
 ss = np.random.SeedSequence(345789)
 
-params = {'max_num_iteration': 350,\
-                   'population_size': 540,\
-                   'mutation_probability': 0.35,\
+params = {'max_num_iteration': 450,\
+                   'population_size': 250,\
+                   'dimension': 9,\
+                   'mutation_probability': 0.15,\
+                   'elit_ratio': 0.25,\
+                   'crossover_probability': 0.75,\
+                   'parents_portion': 0.3,\
+                   'crossover_type':'uniform',\
+                   'max_iteration_without_improv':None}
+
+
+params2 = {'max_num_iteration': 50,\
+                   'population_size': 100,\
+                   'dimension': 9,\
+                   'mutation_probability': 0.25,\
                    'elit_ratio': 0.4,\
-                   'crossover_probability': 0.7,\
+                   'crossover_probability': 0.6,\
                    'parents_portion': 0.5,\
-                   'crossover_type':'one_point',\
-                   'max_iteration_without_improv':150}
+                   'crossover_type':'two_point',\
+                   'max_iteration_without_improv':None}
 
 if __name__ == '__main__':
- n = 2
+ n = 12
  for k in d:
+  print(k)
   if n == 0:
    break;
   n-=1;
   board = d[k].flatten()
-  print(k)
   with Pool(processes=4) as pool:
    res = pool.map(task,[(board,params,s) for s in ss.spawn(N)])
   print("*******************************************************\n")
-
-#  for i in res:
-#   print('\n',i[0])
-#   print('\n',i[1])
-#   print('\n',i[2])
-#   print()
+  p_ini = np.vstack([r[:100,:] for r in res])
+  print(p_ini.shape)
+  model = ga(function=f, board=board,parameters = params2,pop_ini=p_ini)
+  for i in range(150):
+   model.run()
+   print(model.pop[0,9*9],end=' ')
+  print()
